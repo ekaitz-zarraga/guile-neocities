@@ -61,11 +61,14 @@
      (throw 'neocities "Authentication scheme not supported"))))
 
 (define-record-type <neocities-api>
-  (make-neocities-api hostname auth)
+  (_make-neocities-api hostname port auth)
   neocities-api?
   (hostname neocities-api-hostname)
+  (port neocities-api-port)
   (auth neocities-api-auth neocities-api-auth-set!))
 
+(define* (make-neocities-api hostname auth #:optional port)
+  (_make-neocities-api hostname port auth))
 
 
 (define* (neocities-delete api files)
@@ -73,6 +76,7 @@
     (throw 'neocities "files to delete must be a list"))
 
   (let ((url (neocities-url "delete"
+                            #:port (neocities-api-port api)
                             #:hostname (neocities-api-hostname api)
                             #:querystring `(("files" . ,files)))))
     (neocities-request

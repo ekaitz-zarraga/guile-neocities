@@ -43,7 +43,9 @@
             encode-multipart-body))
 
 (define* (neocities-url endpoint #:key (querystring '())
-                                       (hostname     #f))
+                                       (hostname     #f)
+                                       (insecure     #f)
+                                       (port         #f))
   (define (encode-querystring querystring)
     (string-join
       (map (lambda (x)
@@ -59,16 +61,11 @@
            querystring)
       "&"))
 
-  ;; This is for testing locally :)
-  #;(build-uri 'http #:host "localhost"
-                      #:port 1234
-                      #:path (string-append "/api/" endpoint)
-                      #:query (encode-querystring querystring))
-  (build-uri 'https
+  (build-uri (if insecure 'http 'https)
            #:host (or hostname "neocities.org")
+           #:port port
            #:path (string-append "/api/" endpoint)
            #:query (encode-querystring querystring)))
-
 
 (define (encode-multipart-body files)
   "files is an alist with the filename and destination"
