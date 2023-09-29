@@ -25,10 +25,71 @@
 
 (define-module (tests requests)
   #:use-module (neocities requests)
+  #:use-module (scheme base)
   #:use-module (web uri)
+  #:use-module (web server)
+  #:use-module (ice-9 threads)
   #:use-module (srfi srfi-64))
 
-(test-begin "request-url")
-(define url (neocities-url "neocities.org"))
-(test-assert (uri? url))
-(test-end "request-url")
+
+(test-begin "URL")
+
+  (test-group "Creates url"
+              (define url (neocities-url "info" #:hostname "neocities.org"))
+              (test-assert (uri? url)))
+
+
+  (test-group "Creates url with port and host"
+              (define url (neocities-url "info" #:hostname "neocities.org" #:port 80))
+              (test-assert (= (uri-port url) 80))
+              (test-assert (string=? (uri-host url) "neocities.org")))
+
+
+  (test-group "Encodes simple querystring"
+              (define url (neocities-url
+                            "info" #:hostname "neocities.org" #:port 80
+                            #:querystring '(("file" . "COSA CON ESPACIOS"))))
+              (test-assert (string=? (uri-query url) "file=COSA%20CON%20ESPACIOS")))
+
+
+  (test-group "Encodes array in querystring"
+              (define url (neocities-url
+                            "info" #:hostname "neocities.org" #:port 80
+                            #:querystring '(("file" . ("COSA CON ESPACIOS" "otra cosa")))))
+              (test-assert (string=?
+                             (uri-query url)
+                             "file[]=COSA%20CON%20ESPACIOS&file[]=otra%20cosa")))
+(test-end "URL")
+
+
+
+(test-begin "Request")
+
+(define test-port 8080)
+
+(define* (serve-one-client-in-thread handler)
+         (let* ((impl      (lookup-server-impl 'http))
+                (server    (open-server impl `(#:port ,test-port))))
+           (begin-thread (serve-one-client handler impl server '())
+                         (close-server impl server))))
+
+(test-group "Request arrived with empty body"
+  (let* ((request-ret #f)
+         (request-body-ret #f)
+         (handler (lambda (request body)
+                    (set! request-ret request)
+                    (set! request-body-ret body)
+                    (values '((content-type . (text/plain)))
+                            "\"Hello World!\"")))
+        (th (serve-one-client-in-thread handler)))
+    (neocities-request
+      'GET
+      (neocities-url "info"
+                     #:hostname "localhost"
+                     #:port test-port
+                     #:insecure #t))
+    (join-thread th)
+    (test-assert (and request-ret (not request-body-ret)))))
+
+
+(test-end "Request")
