@@ -116,8 +116,8 @@
                             #:hostname (neocities-api-hostname api))))
     (let-values (((boundary body) (encode-multipart-body files)))
       (neocities-request
-      'POST
-      url
-      #:content-type (string-append "multipart/form-data; boundary="  boundary)
-      #:body body
-      #:auth (encode-auth (neocities-api-auth api))))))
+        'POST
+        url
+        #:content-type (string-append "multipart/form-data; boundary="  boundary)
+        #:body body
+        #:auth (encode-auth (neocities-api-auth api))))))
