@@ -50,7 +50,7 @@
     (string-join
       (map (lambda (x)
              (let ((key   (car x))
-                   (value (cdr x)))
+                   (value (cadr x)))
                (if (list? value)
                  (string-join
                    (map (lambda (y)
