@@ -79,7 +79,7 @@
   (let ((url (neocities-url "delete"
                             #:port (neocities-api-port api)
                             #:hostname (neocities-api-hostname api)
-                            #:querystring `(("files" . ,files)))))
+                            #:querystring `(("filenames[]" . ,files)))))
     (neocities-request
       'POST
       url
