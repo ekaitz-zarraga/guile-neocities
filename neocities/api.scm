@@ -36,6 +36,7 @@
     neocities-list
     neocities-key
     neocities-upload
+    neocities-success?
 ))
 
 (define-record-type <neocities-auth-api-key>
@@ -125,3 +126,6 @@
         #:content-type (string-append "multipart/form-data; boundary="  boundary)
         #:body body
         #:auth (encode-auth (neocities-api-auth api))))))
+
+(define (neocities-success? response)
+  (string=? (assoc-ref response "result") "success"))
