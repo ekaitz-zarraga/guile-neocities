@@ -34,6 +34,7 @@ SUFFIXES = .scm .go
 
 SOURCES = neocities/api.scm \
           neocities/requests.scm \
+          neocities/cli.scm \
           neocities/mime.scm
 
 TESTS = tests/requests.scm

@@ -18,6 +18,7 @@
               "neocities"
               ((scheme-file "api")
                (scheme-file "requests")
+               (scheme-file "cli")
                (scheme-file "mime")))))
          (tests
            ((directory "tests" ((scheme-file "requests")))))

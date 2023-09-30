@@ -31,32 +31,79 @@
 ;;
 ;;; Code:
 
-(use-modules (neocities api))
+(use-modules (neocities cli)
+             (ice-9 match))
 
+(define (help)
+  (format #t "
+~A
 
-; Commands
-;
-; AUTH
-;    export NEOCITIES_USER
-;    export NEOCITIES_PASS
-;    or
-;    export NEOCITIES_KEY
-;    or
-;    --prompt
-;
-; TARGET
-;   --host HOSTNAME
-;
-; COMMANDS
-;   list -d DIRECTORY
-;   upload LOCAL -to REMOTE LOCAL -to REMOTE ??
-;   delete file ...
-;   info
-;   key
+USAGE:
+
+  ENVIRONMENT VARIABLES:
+      Export them:
+        export NEOCITIES_USER=my_username
+        ...
+      Or use them in the command line call
+        NEOCITIES_USER=my_username ... neocities
+
+  Authentication:
+    Your credentials
+      export NEOCITIES_USER=my_username
+      export NEOCITIES_PASS=my_password
+    Or your API key:
+      export NEOCITIES_KEY=my_key
+
+  Target:
+    export NEOCITIES_HOST  # defaults to neocities.org
+
+  USAGE:
+    neocities --help/--version
+    neocities COMMAND
+
+    Commands:
+      neocities list DIRECTORY
+      neocities upload LOCAL -to REMOTE LOCAL -to REMOTE ??
+      neocities delete FILE [...]
+      neocities info
+      neocities key
+~%" (car (command-line))))
+
+(define (version)
+  (format #t "
+~A
+
+VERSION: @PACKAGE_VERSION@
+
+   Copyright (C) 2023 Ekaitz Zarraga <ekaitz@elenq.tech>
+
+   Author: Ekaitz Zarraga <ekaitz@elenq.tech>
+
+   guile-neocities is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the Free
+   Software Foundation; either version 3 of the License, or (at your option)
+   any later version.
+
+   guile-neocities is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+   more details.
+~%" (car (command-line))))
+
+(define (subcommand? arg)
+  (not (string-prefix? "-" arg)))
 
 (define* (main #:optional (args (command-line)))
   "Entry point for the commandline application.  ARGS should be a normal
 command-line list, e.g. '(\"neocities\" \"upload\" \"...\")."
-  (display "It runs")
-  (newline)
-)
+  (match args
+    ((program (or "--version" "-v"))
+     (begin (version) (exit 0)))
+    ((or (program) (program (or "--help" "-h")))
+     (begin (help) (exit 1)))
+    ((program (? subcommand? subcommand) . args*)
+     (neocities-run (string->symbol subcommand) args*))
+    ((program invalid-subcommand . args*)
+     (begin
+       (format (current-error-port) "Invalid subcommand: ~a~&" invalid-subcommand )
+       (help) (exit 1)))))
