@@ -21,22 +21,38 @@
 (define %api (make-neocities-api %host %auth))
 
 
+;; TODO MAKE MACRO: if-neocities-success?
+;(define-syntax (syntax-rules))
+
 (define (neocities-cmd-list args)
-  (when (not (= 1 (length args)))
-    (format (current-error-port) "USAGE: neocities list DIRECTORY~&")
+  (when (< 1 (length args))
+    (format (current-error-port) "USAGE: neocities list [DIRECTORY]~&")
     (exit 1))
-  (neocities-list %api (car args)))
+  (let ((result (neocities-list %api (and (not (null? args)) (car args)))))
+    (if (neocities-success? result)
+      (display (assoc-ref result 'files)) ;; TODO Display in table
+      (format (current-error-port) "Not successful"))))
 
 (define (neocities-cmd-key args)
   (when (not (= 0 (length args)))
     (format (current-error-port) "USAGE: neocities key~&")
     (exit 1))
-  (let ((key-pair (assoc "api_key" (neocities-key %api))))
-    (format #t "~a~&" (cdr key-pair))))
+  (let ((result (neocities-key %api)))
+    (if (neocities-success? result)
+      (format #t "~a~&" (assoc-ref result "api_key"))
+      (format (current-error-port) "Not successful"))))
 
-(define (neocities-cmd-upload args) #f)
+(define (neocities-cmd-info args)
+  (when (not (= 0 (length args)))
+    (format (current-error-port) "USAGE: neocities info~&")
+    (exit 1))
+  (let ((result (neocities-info %api)))
+    (if (neocities-success? result)
+      (display (assoc-ref result "info")) ;; TODO display in table
+      (format (current-error-port) "Not successful"))))
+
 (define (neocities-cmd-delete args) #f)
-(define (neocities-cmd-info args) #f)
+(define (neocities-cmd-upload args) #f)
 
 (define (command-not-known command)
   (format (current-error-port) "Command not known ~A~&" command)
@@ -50,9 +66,7 @@
     (info   . ,neocities-cmd-info)
     (key    . ,neocities-cmd-key)))
 
-(define (lookup-command command)
-  (let ((value (assoc command neocities-commands)))
-    (and value (cdr value))))
-
 (define (neocities-run command args)
-  ((or (lookup-command command) (command-not-known command)) args))
+  ((or (assoc-ref neocities-commands command)
+       (command-not-known command))
+   args))
