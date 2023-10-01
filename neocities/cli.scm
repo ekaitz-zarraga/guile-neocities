@@ -49,7 +49,11 @@
     (exit 1))
   (let-values (((response body) (neocities-info %api)))
     (if (neocities-success? body)
-      (display (assoc-ref body "info")) ;; TODO Display in table
+      (format #t "~:{~a: ~a~&~}"
+        (map (lambda (el) (list (car el) (cdr el)))
+             (let ((info (assoc-ref body "info")))
+               (assoc-set! info "tags"
+                 (string-join (vector->list (assoc-ref info "tags")) ", ")))))
       (format (current-error-port) "~A~&" (assoc-ref body "message")))))
 
 (define (neocities-cmd-delete args)
