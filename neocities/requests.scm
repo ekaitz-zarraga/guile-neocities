@@ -124,17 +124,16 @@
                                   (auth  #f)
                                   (content-type #f))
 
-  (define (response-error res)
-    `(("response-code" . ,(response-code res))
-      ("response-phrase" .
-       ,(response-reason-phrase res))
-      ("response" .
-       ,(if (bytevector? body)
-          (utf8->string body)
-          body))))
 
-  (define (response-ok? response)
-    (> 100 (- (response-code response) 200) -1))
+  (define (decode-body response body)
+    (match (response-content-type response)
+           (('text/plain ('charset . "utf-8"))
+            (utf8->string body))
+           (('text/html ('charset . "utf-8"))
+            (utf8->string body))
+           (('application/json . rest)
+            (json-string->scm (utf8->string body)))
+           (else body))) ;; Don't know how to decode, leave it
 
   (let-values (((response body)
                 (http-request
@@ -148,12 +147,4 @@
                                 (and content-type `(Content-Type . ,content-type))
                                 (and auth         `(Authorization . ,auth))))
                   #:decode-body? #f)))
-    (if (response-ok? response)
-        (match (response-content-type response)
-          (('text/plain ('charset . "utf-8"))
-            (utf8->string body))
-          (('application/json . rest)
-            (json-string->scm (utf8->string body)))
-          (else
-            (throw 'neocities "Don't know how to decode "(response-content-type response))))
-        (throw 'neocities (response-error response)))))
+    (values response (decode-body response body))))
