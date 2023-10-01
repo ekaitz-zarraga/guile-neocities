@@ -1,5 +1,6 @@
 (define-module (neocities cli)
   #:use-module (neocities api)
+  #:use-module (srfi srfi-11)
   #:use-module (ice-9 format)
   #:export (
     neocities-run
@@ -28,31 +29,46 @@
   (when (< 1 (length args))
     (format (current-error-port) "USAGE: neocities list [DIRECTORY]~&")
     (exit 1))
-  (let ((result (neocities-list %api (and (not (null? args)) (car args)))))
-    (if (neocities-success? result)
-      (display (assoc-ref result 'files)) ;; TODO Display in table
-      (format (current-error-port) "Not successful"))))
+  (let-values (((response body) (neocities-list %api (and (not (null? args)) (car args)))))
+    (if (neocities-success? body)
+      (display (assoc-ref body "files")) ;; TODO Display in table
+      (format (current-error-port) "~A~&" (assoc-ref body "message")))))
 
 (define (neocities-cmd-key args)
   (when (not (= 0 (length args)))
     (format (current-error-port) "USAGE: neocities key~&")
     (exit 1))
-  (let ((result (neocities-key %api)))
-    (if (neocities-success? result)
-      (format #t "~a~&" (assoc-ref result "api_key"))
-      (format (current-error-port) "Not successful"))))
+  (let-values (((response body) (neocities-key %api)))
+    (if (neocities-success? body)
+      (format #t "~A~&" (assoc-ref body "api_key"))
+      (format (current-error-port) "~A~&" (assoc-ref body "message")))))
 
 (define (neocities-cmd-info args)
   (when (not (= 0 (length args)))
     (format (current-error-port) "USAGE: neocities info~&")
     (exit 1))
-  (let ((result (neocities-info %api)))
-    (if (neocities-success? result)
-      (display (assoc-ref result "info")) ;; TODO display in table
-      (format (current-error-port) "Not successful"))))
+  (let-values (((response body) (neocities-info %api)))
+    (if (neocities-success? body)
+      (display (assoc-ref body "info")) ;; TODO Display in table
+      (format (current-error-port) "~A~&" (assoc-ref body "message")))))
 
-(define (neocities-cmd-delete args) #f)
-(define (neocities-cmd-upload args) #f)
+(define (neocities-cmd-delete args)
+  (when (= 0 (length args))
+    (format (current-error-port) "USAGE: neocities delete FILE [...]~&")
+    (exit 1))
+  (let-values (((response body) (neocities-delete %api args)))
+    (if (neocities-success? body)
+      (format #t "~A~&" (assoc-ref body "message"))
+      (format (current-error-port) "~A~&" (assoc-ref body "message")))))
+
+(define (neocities-cmd-upload args)
+  ;; TODO
+  ;; - Multipart is not working
+  ;; - Input arguments have to be paired properly
+  (let-values (((response body) (neocities-upload %api '(("rando.txt" . "rando.txt")))))
+    (if (neocities-success? body)
+      (format #t "~A~&" (assoc-ref body "message"))
+      (format (current-error-port) "~A~&" (assoc-ref body "message")))))
 
 (define (command-not-known command)
   (format (current-error-port) "Command not known ~A~&" command)
