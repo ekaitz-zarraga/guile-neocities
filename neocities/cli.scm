@@ -66,10 +66,15 @@
       (format (current-error-port) "~A~&" (assoc-ref body "message")))))
 
 (define (neocities-cmd-upload args)
-  ;; TODO
-  ;; - Multipart is not working
-  ;; - Input arguments have to be paired properly
-  (let-values (((response body) (neocities-upload %api '(("rando.txt" . "rando.txt")))))
+  (define (pair-args args)
+    (map (lambda (i)
+           (cons (list-ref args (* 2 i)) (list-ref args (+ 1 (* 2 i)))))
+         (iota (/ (length args) 2))))
+
+  (when (or (> 1 (length args)) (not (= 0 (modulo (length args) 2))))
+    (format (current-error-port) "USAGE: neocities upload LOCAL_FILE DESTINATION [...]~&")
+    (exit 1))
+  (let-values (((response body) (neocities-upload %api (pair-args args))))
     (if (neocities-success? body)
       (format #t "~A~&" (assoc-ref body "message"))
       (format (current-error-port) "~A~&" (assoc-ref body "message")))))
