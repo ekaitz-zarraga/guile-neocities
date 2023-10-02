@@ -67,6 +67,9 @@
            #:path (string-append "/api/" endpoint)
            #:query (encode-querystring querystring)))
 
+(define (to-ascii st)
+  (string->bytevector st "ascii"))
+
 (define (encode-multipart-body files)
   "files is an alist with the filename and destination"
 
@@ -85,26 +88,27 @@
 
   (define (encode-file file)
     (bytevector-append
-      (string->utf8
+      (to-ascii
         (string-append
           "Content-Disposition: form-data;"
-          "filename=\"" (destination file) "\"\r\n"
+          " name=\"" (destination file) "\";"
+          " filename=\"" (destination file) "\"\r\n"
           "Content-Type: " (type file) " \r\n\r\n"))
-      (call-with-input-file (name file) get-bytevector-all #:binary #t)
-      (string->utf8 "\r\n")))
+      (call-with-input-file (name file) get-bytevector-all #:binary #t)))
 
   (define boundary
-    (string-append "----------------------------------------------------------"
-      (random-token)))
+    (string-append "-------------------" (random-token)))
 
   (values boundary
     (apply bytevector-append
            (map (lambda (file i)
                   (bytevector-append
-                    (string->utf8 (string-append boundary "\r\n"))
+                    (to-ascii (string-append
+                                (if (= i 0) "" "\r\n")
+                                "--" boundary "\r\n"))
                     (encode-file file)
                     (if (= (+ i 1) (length files))
-                      (string->utf8 (string-append "\r\n" boundary "--\r\n\r\n"))
+                      (to-ascii (string-append "\r\n" "--" boundary "--\r\n"))
                       #vu8())))
                 files
                 (iota (length files))))))
