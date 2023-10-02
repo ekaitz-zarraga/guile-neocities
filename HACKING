@@ -39,6 +39,8 @@ dependencies manually:
   - pkg-config
   - texinfo
   - guile-hall
+  - guile-json
+  - guile-gcrypt
 
 Once those dependencies are installed you can run:
 

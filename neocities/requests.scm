@@ -51,13 +51,13 @@
       (map (lambda (x)
              (let ((key   (car x))
                    (value (cdr x)))
-               (if (= 1 (length value))
-                 (string-append (uri-encode key) "=" (uri-encode (car value)))
+               (if (list? value)
                  (string-join
                    (map (lambda (y)
                           (string-append (uri-encode key) "=" (uri-encode y)))
                         value)
-                   "&"))))
+                   "&")
+                 (string-append (uri-encode key) "=" (uri-encode value)))))
            querystring)
       "&"))
 

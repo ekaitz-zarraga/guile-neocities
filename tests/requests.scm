@@ -55,10 +55,10 @@
   (test-group "Encodes array in querystring"
               (define url (neocities-url
                             "info" #:hostname "neocities.org" #:port 80
-                            #:querystring '(("file" . ("COSA CON ESPACIOS" "otra cosa")))))
+                            #:querystring '(("file[]" . ("COSA CON ESPACIOS" "otra cosa")))))
               (test-assert (string=?
                              (uri-query url)
-                             "file[]=COSA%20CON%20ESPACIOS&file[]=otra%20cosa")))
+                             "file%5B%5D=COSA%20CON%20ESPACIOS&file%5B%5D=otra%20cosa")))
 (test-end "URL")
 
 
