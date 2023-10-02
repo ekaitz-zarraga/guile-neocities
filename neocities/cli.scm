@@ -31,7 +31,16 @@
     (exit 1))
   (let-values (((response body) (neocities-list %api (and (not (null? args)) (car args)))))
     (if (neocities-success? body)
-      (display (assoc-ref body "files")) ;; TODO Display in table
+        (format #t
+                "Updated at~32tDir~36tFilename~86tSize~91tSHA-1~&~:{~A~33t~@[d~]~36t~A~84t~@[~6d~]~91t~@[~A~]~&~}"
+                (map
+                  (lambda (file) (list
+                                   (assoc-ref file "updated_at")
+                                   (assoc-ref file "is_directory")
+                                   (assoc-ref file "path")
+                                   (assoc-ref file "size")
+                                   (assoc-ref file "sha1_hash")))
+                  (vector->list (assoc-ref body "files"))))
       (format (current-error-port) "~A~&" (assoc-ref body "message")))))
 
 (define (neocities-cmd-key args)
