@@ -88,6 +88,7 @@
 
 (define* (neocities-list api #:optional path)
   (let ((url (neocities-url "list"
+                            #:port (neocities-api-port api)
                             #:hostname (neocities-api-hostname api)
                             #:querystring (if path `(("path" ,path)) '()))))
     (neocities-request
@@ -98,6 +99,7 @@
 (define* (neocities-info api #:optional sitename)
   ;; It can be unauthenticated, but this is only the authenticated version
   (let ((url (neocities-url "info"
+                            #:port (neocities-api-port api)
                             #:hostname (neocities-api-hostname api)
                             #:querystring (if sitename
                                             `(("sitename" ,sitename))
@@ -109,6 +111,7 @@
 
 (define* (neocities-key api)
   (let ((url (neocities-url "key"
+                            #:port (neocities-api-port api)
                             #:hostname (neocities-api-hostname api))))
     (neocities-request
       'GET
@@ -118,6 +121,7 @@
 (define* (neocities-upload api files)
   "files is an alist with the filename and destination"
   (let ((url (neocities-url "upload"
+                            #:port (neocities-api-port api)
                             #:hostname (neocities-api-hostname api))))
     (let-values (((boundary body) (encode-multipart-body files)))
       (neocities-request
