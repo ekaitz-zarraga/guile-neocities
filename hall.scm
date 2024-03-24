@@ -3,6 +3,7 @@
   (prefix "guile")
   (version "0.1")
   (author "Ekaitz Zarraga")
+  (email "")
   (copyright (2023))
   (synopsis "Neocities API and Command Line tool")
   (description
@@ -31,6 +32,7 @@
             (markdown-file "README")
             (text-file "HACKING")
             (text-file "COPYING")
+            (directory ".github" ((unknown-type "FUNDING.yml")))
             (directory "doc" ((texi-file "neocities")))))
          (infrastructure
            ((scheme-file "guix")
