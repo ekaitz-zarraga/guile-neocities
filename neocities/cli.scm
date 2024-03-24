@@ -11,16 +11,15 @@
 (define %key  (getenv "NEOCITIES_KEY"))
 (define %host (or (getenv "NEOCITIES_HOST") "neocities.org"))
 
-(define %auth
+(define %auth #f)
+
+(define (make-auth)
   (cond
     (%key (make-neocities-auth-api-key %key))
     ((and %user %pass) (make-neocities-auth-basic %user %pass))
     (else (begin
             (format (current-error-port) "ERROR: Missing authentication method~&")
             (exit 1)))))
-
-(define %api (make-neocities-api %host %auth))
-
 
 ;; TODO MAKE MACRO: if-neocities-success?
 ;(define-syntax (syntax-rules))
@@ -29,7 +28,9 @@
   (when (< 1 (length args))
     (format (current-error-port) "USAGE: neocities list [DIRECTORY]~&")
     (exit 1))
-  (let-values (((response body) (neocities-list %api (and (not (null? args)) (car args)))))
+  (let-values (((response body) (neocities-list (make-neocities-api %host (make-auth))
+                                                (and (not (null? args))
+                                                     (car args)))))
     (if (neocities-success? body)
         (format #t
                 "Updated at~32tDir~36tFilename~86tSize~91tSHA-1~&~:{~A~33t~@[d~]~36t~A~84t~@[~6d~]~91t~@[~A~]~&~}"
@@ -47,7 +48,7 @@
   (when (not (= 0 (length args)))
     (format (current-error-port) "USAGE: neocities key~&")
     (exit 1))
-  (let-values (((response body) (neocities-key %api)))
+  (let-values (((response body) (neocities-key (make-neocities-api %host (make-auth)))))
     (if (neocities-success? body)
       (format #t "~A~&" (assoc-ref body "api_key"))
       (format (current-error-port) "~A~&" (assoc-ref body "message")))))
@@ -56,7 +57,7 @@
   (when (not (= 0 (length args)))
     (format (current-error-port) "USAGE: neocities info~&")
     (exit 1))
-  (let-values (((response body) (neocities-info %api)))
+  (let-values (((response body) (neocities-info (make-neocities-api %host (make-auth)))))
     (if (neocities-success? body)
       (format #t "~:{~a: ~a~&~}"
         (map (lambda (el) (list (car el) (cdr el)))
@@ -69,7 +70,8 @@
   (when (= 0 (length args))
     (format (current-error-port) "USAGE: neocities delete FILE [...]~&")
     (exit 1))
-  (let-values (((response body) (neocities-delete %api args)))
+  (let-values (((response body) (neocities-delete (make-neocities-api %host (make-auth))
+                                                  args)))
     (if (neocities-success? body)
       (format #t "~A~&" (assoc-ref body "message"))
       (format (current-error-port) "~A~&" (assoc-ref body "message")))))
@@ -83,7 +85,8 @@
   (when (or (> 1 (length args)) (not (= 0 (modulo (length args) 2))))
     (format (current-error-port) "USAGE: neocities upload LOCAL_FILE DESTINATION [...]~&")
     (exit 1))
-  (let-values (((response body) (neocities-upload %api (pair-args args))))
+  (let-values (((response body) (neocities-upload (make-neocities-api %host (make-auth))
+                                                  (pair-args args))))
     (if (neocities-success? body)
       (format #t "~A~&" (assoc-ref body "message"))
       (format (current-error-port) "~A~&" (assoc-ref body "message")))))
