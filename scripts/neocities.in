@@ -55,7 +55,7 @@ USAGE:
       export NEOCITIES_KEY=my_key
 
   Target:
-    export NEOCITIES_HOST  # defaults to neocities.org
+    export NEOCITIES_HOST=my-neocities-host.org  # defaults to neocities.org
 
   USAGE:
     neocities --help/--version
