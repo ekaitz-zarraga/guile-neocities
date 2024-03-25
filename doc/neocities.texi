@@ -47,14 +47,289 @@ This document describes Neocities version @value{VERSION}.
 
 @menu
 * Introduction::                Why Neocities?
+* Installation::                How to install
+* CLI::                         Using the Command-Line Interface
+* Guile API::                   Using the Guile API
+* Development::                 Taking part and improving Guile-Neocities
 @end menu
 
 @c *********************************************************************
 @node Introduction
 @chapter Introduction
 
-INTRODUCTION HERE
+This project is a CLI tool and a Guile API to interact with Neocities.
 
-This documentation is a stub.
+@node Installation
+@chapter Installation
+
+With Guix you can just:
+
+@example
+$ guix install -f guix.scm
+@end example
+
+If you want to develop or install it in a different distribution you have to do
+all by hand.
+
+@node Dependencies
+@section Dependencies
+
+@subsection Run-time dependencies
+
+@itemize
+@item
+@code{guile-3}
+@item
+@code{guile-json-4}
+@item
+@code{guile-gcrypt}
+@end itemize
+
+@subsection Development dependencies
+
+@itemize
+@item
+@code{autoconf}
+@item
+@code{automake}
+@item
+@code{pkg-config}
+@item
+@code{texinfo}
+@item
+@code{make}
+@end itemize
+
+@node Building from source
+@section Building from source
+
+Like other GNU projects you can build this using autotools and make.
+Make sure you have the dependencies (both run-time and dev) installed.
+
+@example
+$ autoreconf -vif
+$ ./configure
+$ make
+@end example
+
+If you wish to install you can @command{make install}, too.
+
+@node CLI
+@chapter CLI
+
+The command line interface has a set of commands to interact with Neocities.
+Running @command{neocities --help} lists them all with the documentation:
+
+@example
+$ neocities --help
+
+neocities
+
+USAGE:
+
+  ENVIRONMENT VARIABLES:
+      Export them:
+        export NEOCITIES_USER=my_username
+        ...
+      Or use them in the command line call
+        NEOCITIES_USER=my_username ... neocities
+
+  Authentication:
+    Your credentials
+      export NEOCITIES_USER=my_username
+      export NEOCITIES_PASS=my_password
+    Or your API key:
+      export NEOCITIES_KEY=my_key
+
+  Target:
+    export NEOCITIES_HOST=my-neocities-host.org  # defaults to neocities.org
+
+  USAGE:
+    neocities @{--help|--version|<command>@}
+
+    Commands:
+      neocities list <directory>
+      neocities upload <local> <remote> [...]
+      neocities delete <file> [...]
+      neocities info
+      neocities key
+@end example
+
+@node CLI Authentication
+@section CLI Authentication
+
+Command-Line Interface makes use of environment variables to obtain the
+credentials of the Neocities instance.
+
+You can use user/password authentication or the key. The command line example
+in the previous section explains how to do that.
+
+@node Guile API
+@chapter Guile API
+
+The very same functionality available from the command line is also available
+using the Guile API.
+
+@node Initialization
+@section Initialization
+
+There are two authentication methods available, user/pass and key, that can be
+created using @code{make-neocities-auth-basic} and
+@code{make-neocities-auth-api-key} respectively.
+
+@deffn {Procedure} make-neocities-auth-basic user pass
+
+Returns an authentication object based on username and password.
+
+@itemize
+@item
+@var{user}: String with the Neocities username
+@item
+@var{pass}: String with the Neocities password
+@end itemize
+@end deffn
+
+@deffn {Procedure} make-neocities-auth-api-key api-key
+
+Returns an authentication object based on an API-key.
+
+@itemize
+@item
+@var{api-key}: String with the API-Key obtained from Neocities
+@end itemize
+@end deffn
+
+Once the authentication method is created, the API access has to be created.
+@code{make-neocities-api} procedure does that job.
+
+@deffn {Procedure} make-neocities-api host auth #:optional port
+
+Returns a Neocitites API object with the provided authentication.
+
+@itemize
+@item
+@var{host}: String with the hostname with the Neocities instance
+@item
+@var{auth}: Authentication object created with
+@var{make-neocities-auth-api-key} or @var{make-neocities-auth-basic}
+@item
+@var{port}: Optional port number to connect to
+@end itemize
+@end deffn
+
+Once the API is created it can be used to call the API functions.
+
+@node Usage
+@section Usage
+
+These are the available API calls to Neocities API. All of them use convert
+their arguments to JSON and use the Neocities API. They return two
+@code{values} as Guile's http interface would return using @code{(web
+client)}'s @code{http-request}. The first is the @code{response}, but the
+second, the @code{body}, converted from JSON to Scheme using @code{guile-json}
+library if the request is successful.
+
+@deffn {Procedure} neocities-key api
+
+Obtain an API-Key from Neocities.
+
+@itemize
+@item
+@var{api}: API object created with @var{make-neocities-api}.
+@end itemize
+@end deffn
+
+
+@deffn {Procedure} neocities-info api #:optional sitename
+
+Obtain info about the Neocities site.
+
+@itemize
+@item
+@var{api}: API object created with @var{make-neocities-api}.
+@item
+@var{sitename}: Optional argument. Site to get information from (string).
+Defaults to the site of the authenticated user.
+@end itemize
+@end deffn
+
+
+@deffn {Procedure} neocities-list api #:optional path
+
+Obtain list of files in Neocities site.
+
+@itemize
+@item
+@var{api}: API object created with @var{make-neocities-api}.
+@item
+@var{path}: Optional argument. Path to list (string). Defaults to the root
+folder of the site (@code{/}).
+@end itemize
+@end deffn
+
+
+@deffn {Procedure} neocities-upload api files
+
+Upload files to Neocities.
+
+@itemize
+@item
+@var{api}: API object created with @var{make-neocities-api}.
+@item
+@var{files}: List of pairs of paths. In the shape @code{((from . to) ...)}
+@end itemize
+@end deffn
+
+
+@deffn {Procedure} neocities-delete api files
+
+Delete files from Neocities site.
+
+@itemize
+@item
+@var{api}: API object created with @var{make-neocities-api}.
+@item
+@var{files}: List of paths (strings) to delete.
+@end itemize
+@end deffn
+
+
+
+@node Helper functions
+@section Helper functions
+
+Neocities returns important information inside of the responses of their API,
+using the @code{result} field of their response, once the HTTP layer was
+correctly processed. We also provide a function that checks that field to know
+if the request was properly formulated.
+
+@deffn {Procedure} neocities-success? body
+
+Return @code{#t} if body represents a successful interaction and @code{#f}
+otherwise.
+
+@itemize
+@item
+@var{body}: Body of the response, the second of the @code{values} returned by
+any call to the Neocities API.
+@end itemize
+@end deffn
+
+@node Development
+@chapter Development
+
+The project files are managed using @code{guile-hall}, which give us some
+automation for all the autotools stuff.
+
+If you wish to test the code in your development environment, the tools should
+provide you a @command{pre-inst-env} script that enables you to do that:
+
+@example
+./pre-inst-env neocities --help
+@end example
+
+On top of that, taking part in the project is similar to any GNU project. You
+can send your patches to the maintainer (see the email in the commits) or in
+the Github mirror.
 
 @bye
