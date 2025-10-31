@@ -1,7 +1,7 @@
 dnl -*- Autoconf -*-
 
-AC_INIT(guile-neocities, 0.1)
-AC_SUBST(HVERSION, "\"0.1\"")
+AC_INIT(guile-neocities, 0.0.1)
+AC_SUBST(HVERSION, "\"0.0.1\"")
 AC_SUBST(AUTHOR, "\"Ekaitz Zarraga\"")
 AC_SUBST(COPYRIGHT, "'(2023)")
 AC_SUBST(LICENSE, gpl3+)

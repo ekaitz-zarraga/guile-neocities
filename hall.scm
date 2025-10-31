@@ -1,7 +1,7 @@
 (hall-description
   (name "neocities")
   (prefix "guile")
-  (version "0.1")
+  (version "0.0.1")
   (author "Ekaitz Zarraga")
   (email "")
   (copyright (2023))
