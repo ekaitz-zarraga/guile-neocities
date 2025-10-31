@@ -58,13 +58,12 @@ USAGE:
     export NEOCITIES_HOST=my-neocities-host.org  # defaults to neocities.org
 
   USAGE:
-    neocities --help/--version
-    neocities COMMAND
+    neocities {--help|--version|<command>}
 
     Commands:
-      neocities list DIRECTORY
-      neocities upload LOCAL -to REMOTE LOCAL -to REMOTE ??
-      neocities delete FILE [...]
+      neocities list <directory>
+      neocities upload <local> <remote> [...]
+      neocities delete <file> [...]
       neocities info
       neocities key
 ~%" (car (command-line))))
