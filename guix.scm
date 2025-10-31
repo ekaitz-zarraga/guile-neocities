@@ -15,7 +15,7 @@
 
 (package
   (name "guile-neocities")
-  (version "0.1")
+  (version "0.0.1")
   (source
     (local-file
       (dirname (current-filename))
@@ -29,7 +29,7 @@
     `(#:modules
       ((ice-9 match)
        (ice-9 ftw)
-       ,@%gnu-build-system-modules)
+       ,@%default-gnu-imported-modules)
       #:phases
       (modify-phases
         %standard-phases
